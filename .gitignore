@@ -1,0 +1,7 @@
+data/*
+.idea/*
+*.mid
+*.png
+*.SF2
+ocean_music/soundfont.SF2
+
