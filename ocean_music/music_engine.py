@@ -71,8 +71,9 @@ class ocean_music_engine():
         temp_data = temp_data.values.flatten()
         # remove nan
         # self.data = temp_data[np.logical_not(np.isnan(temp_data))]
-        self.data = temp_data[np.logical_not(np.isnan(temp_data))][0:1000] # because there is too many values, testing for now
+        self.data = temp_data[np.logical_not(np.isnan(temp_data))]#[0:1000] # because there is too many values, testing for now
         # print(self.data)
+        print(len(self.data))
         pass
 
     # todo method for generating the music:
@@ -90,13 +91,19 @@ class ocean_music_engine():
         main_track  = Track(MidiInstrument(name="Violin"))
 
         # create bars on the time signature:
+        # reshape data
+        m, n = 17000, int(len(self.data)/17000)+1
+        self.data = np.pad(self.data.astype(float), (0, m * n - self.data.size),
+               mode='constant', constant_values=1.0).reshape(m, n)
         b = Bar(meter=self.music_timesignature)
-        for index,number in enumerate(self.data):
+        # for index,number in enumerate(self.data):
+        for index,number in enumerate(range(n)):
             if index%self.music_timesignature[1] == 0:
                 b = Bar(meter=self.music_timesignature) # make it empty again
-            # otherwise add:
             # find note to add
-            b + self._note_value_at_data_value(number,notes_limits,ocean_music_engine._ALL_NOTES)
+            new_data_point = np.sum(self.data[:,number])/m # average the values to get something in-between 0 and 1
+            print(new_data_point)
+            b + self._note_value_at_data_value(new_data_point,notes_limits,ocean_music_engine._ALL_NOTES)
 
             # add to tracks:
             main_track.add_bar(b)
@@ -108,23 +115,7 @@ class ocean_music_engine():
         composition.set_title('First Mingus Composition')
         composition.add_track(main_track)
 
-
-        # b = Bar(meter=self.music_timesignature)
-        # b + "C"
-        # b + "G"
-        # b + "F#"
-        # b + "F"
-        # b + "G"
-        # b + "E"
-        # b + "D"
-        # b + "C"
-        # b + "B"
-        # b + "A"
-        # print(b)
-        # self.music = b
-
         self.music = composition
-        print(len(self.data))
         pass
 
     # todo method for playing music in midi file:
