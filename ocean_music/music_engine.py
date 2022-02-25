@@ -12,6 +12,13 @@ import numpy as np
 import xarray as xr
 import bisect
 
+# plotting:
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+
+
 class ocean_music_engine():
 
     # constants: # todo make this scales or harmonics at some point.
@@ -76,47 +83,73 @@ class ocean_music_engine():
         print(len(self.data))
         pass
 
+    def plot_data(self):
+        print(self.data.shape)
+        plt.figure()
+        # x axis:
+        plt.plot(np.arange(len(self.data)), self.data, "r-", label="x-axis")
+        # y axis:
+        # plt.legend()
+        # plt.xlim([-self.axis_range, self.axis_range])
+        # plt.ylim([0, 1000])
+        plt.savefig("flattened_data_plot.png", bbox_inches="tight")
+
     # todo method for generating the music:
     def generate_music(self):
-        # get notes limits
-        temp_dict,notes_limits = self._map_all_notes_to_0_1()
+        # fourier transform method:
+        fft = np.fft.rfft(self.data)
+        fftfreq = np.fft.rfftfreq(len(self.data))
 
-        # Test bar time signature:
-        try:
-            Bar(meter=self.music_timesignature)
-        except Exception as e:
-            raise ValueError("The music time signature is invalid, please use another time signature.")
+        # plot the frequencies:
+        plt.figure()
+        # x axis:
+        plt.plot(fftfreq, fft, "r*", label="x-axis")
+        # y axis:
+        # plt.legend()
+        # plt.xlim([-self.axis_range, self.axis_range])
+        plt.ylim([0, 200])
+        plt.savefig("fft_frequencies.png", bbox_inches="tight")
 
-        # create the track:
-        main_track  = Track(MidiInstrument(name="Violin"))
 
-        # create bars on the time signature:
-        # reshape data
-        m, n = 17000, int(len(self.data)/17000)+1
-        self.data = np.pad(self.data.astype(float), (0, m * n - self.data.size),
-               mode='constant', constant_values=1.0).reshape(m, n)
-        b = Bar(meter=self.music_timesignature)
-        # for index,number in enumerate(self.data):
-        for index,number in enumerate(range(n)):
-            if index%self.music_timesignature[1] == 0:
-                b = Bar(meter=self.music_timesignature) # make it empty again
-            # find note to add
-            new_data_point = np.sum(self.data[:,number])/m # average the values to get something in-between 0 and 1
-            print(new_data_point)
-            b + self._note_value_at_data_value(new_data_point,notes_limits,ocean_music_engine._ALL_NOTES)
-
-            # add to tracks:
-            main_track.add_bar(b)
-            pass
-
-        # create composition from tracks:
-        composition = Composition()
-        composition.set_author('Kirodh Boodhraj', 'kboodhraj@gmail.com')
-        composition.set_title('First Mingus Composition')
-        composition.add_track(main_track)
-
-        self.music = composition
-        pass
+        # # get notes limits
+        # temp_dict,notes_limits = self._map_all_notes_to_0_1()
+        #
+        # # Test bar time signature:
+        # try:
+        #     Bar(meter=self.music_timesignature)
+        # except Exception as e:
+        #     raise ValueError("The music time signature is invalid, please use another time signature.")
+        #
+        # # create the track:
+        # main_track  = Track(MidiInstrument(name="Violin"))
+        #
+        # # create bars on the time signature:
+        # # reshape data
+        # m, n = 17000, int(len(self.data)/17000)+1
+        # self.data = np.pad(self.data.astype(float), (0, m * n - self.data.size),
+        #        mode='constant', constant_values=1.0).reshape(m, n)
+        # b = Bar(meter=self.music_timesignature)
+        # # for index,number in enumerate(self.data):
+        # for index,number in enumerate(range(n)):
+        #     if index%self.music_timesignature[1] == 0:
+        #         b = Bar(meter=self.music_timesignature) # make it empty again
+        #     # find note to add
+        #     new_data_point = np.sum(self.data[:,number])/m # average the values to get something in-between 0 and 1
+        #     print(new_data_point)
+        #     b + self._note_value_at_data_value(new_data_point,notes_limits,ocean_music_engine._ALL_NOTES)
+        #
+        #     # add to tracks:
+        #     main_track.add_bar(b)
+        #     pass
+        #
+        # # create composition from tracks:
+        # composition = Composition()
+        # composition.set_author('Kirodh Boodhraj', 'kboodhraj@gmail.com')
+        # composition.set_title('First Mingus Composition')
+        # composition.add_track(main_track)
+        #
+        # self.music = composition
+        # pass
 
     # todo method for playing music in midi file:
     def play_music_midi_file(self):
@@ -170,9 +203,11 @@ if __name__ == '__main__':
     print("harmonize data:")
     music.harmonize_data()
     # music.set_music_timesignature((4,3))
+    print("plot data:")
+    music.plot_data()
     print("generate music:")
     music.generate_music()
     print("play music:")
     # music.play_music_midi_file()
     print("make sheet music:")
-    music.generate_musicsheets()
+    # music.generate_musicsheets()

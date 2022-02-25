@@ -4,4 +4,6 @@ data/*
 *.png
 *.SF2
 ocean_music/soundfont.SF2
+ocean_music/fft_frequencies.png
+ocean_music/flattened_data_plot.png
 
